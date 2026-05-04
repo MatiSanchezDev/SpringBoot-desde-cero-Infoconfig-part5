@@ -86,8 +86,8 @@ El archivo `src/main/resources/application.properties` contiene toda la configur
 ```properties
 spring.application.name=ferreteria
 spring.datasource.url=jdbc:mysql://localhost:3306/db_ferreteria
-spring.datasource.username=root
-spring.datasource.password=admin
+spring.datasource.username=Tu_user
+spring.datasource.password=Tu_pass
 spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
 spring.jpa.show-sql=true
