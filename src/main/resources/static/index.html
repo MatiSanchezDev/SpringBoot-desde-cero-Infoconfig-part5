@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ferretería Antillana</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: #f0f2f5; }
+        header { background-color: #1e90ff; padding: 20px; color: white; font-family: Verdana; text-align: center; font-size: 2em; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        nav { background-color: #007bff; color: white; display: flex; justify-content: center; gap: 20px; padding: 10px 0; font-size: 16px; font-weight: bold; }
+        nav a { color: white; text-decoration: none; padding: 8px 15px; border-radius: 5px; }
+        nav a:hover { background-color: #0056b3; }
+        h3 { text-align: center; font-family: Verdana; color: #333; font-size: 1.8em; margin-top: 20px; }
+        #panel { padding: 20px; background: white; margin: 20px; border-radius: 10px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); }
+        button { margin: 5px; padding: 10px 15px; border: none; border-radius: 5px; color: white; cursor: pointer; font-size: 14px; }
+        .btn-blue { background-color: #007bff; }
+        .btn-green { background-color: #28a745; }
+        .btn-orange { background-color: #fd7e14; }
+        .btn-gray { background-color: #6c757d; }
+        button:hover { opacity: 0.9; }
+        table { width: 100%; border-collapse: collapse; background: white; margin-top: 20px; }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: center; }
+        th { background-color: #e9ecef; }
+        input { padding: 8px; margin: 5px; border: 1px solid #ccc; border-radius: 5px; }
+        #tablaResultados { margin: 20px; }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <i class="fas fa-hammer"></i> FERRETERÍA ANTILLANA
+</header>
+
+<nav>
+    <a href="#">Productos</a>
+    <a href="#">Proveedores</a>
+    <a href="#">Ventas</a>
+    <a href="#">Usuarios</a>
+    <a href="#">Almacen</a>
+    <a href="#">Reportes</a>
+</nav>
+
+<h3>Control de Inventario</h3>
+
+<div id="panel">
+    <button class="btn-blue" onclick="listarProductos()"><i class="fas fa-box"></i> Listar Productos</button>
+    <button class="btn-blue" onclick="buscarProductoId()"><i class="fas fa-search"></i> Buscar Producto</button>
+    <hr>
+    <button class="btn-green" onclick="mostrarFormularioActualizar()"><i class="fas fa-edit"></i> Actualizar Productos</button>
+    <button class="btn-gray" onclick="mostrarFormularioEliminar()"><i class="fas fa-trash"></i> Eliminar Productos</button>
+    <button class="btn-orange" onclick="mostrarFormularioInsertar()"><i class="fas fa-plus"></i> Insertar Productos</button>
+</div>
+
+<div id="formularios" style="margin: 20px;"></div>
+<div id="tablaResultados"></div>
+
+<script>
+    const BASE_URL = "http://localhost:8080/api/articulos";
+
+
+ // LISTAR PRODUCTOS
+ function listarProductos() {
+     $.get(BASE_URL, function (data) {
+         mostrarTabla(data);
+     }).fail(() => Swal.fire("Error", "No se pudieron obtener los productos", "error"));
+ }
+
+ // BUSCAR POR ID
+ function buscarProductoId() {
+     Swal.fire({
+         title: "Buscar producto",
+         input: "number",
+         inputLabel: "Ingrese el ID del producto",
+         showCancelButton: true,
+         confirmButtonText: "Buscar"
+     }).then(result => {
+         if (result.isConfirmed && result.value) {
+             $.get(BASE_URL + "/" + result.value, function (data) {
+                 mostrarTabla([data]);
+             }).fail(() => Swal.fire("Error", "Producto no encontrado", "error"));
+         }
+     });
+ }
+
+ // FORMULARIO ACTUALIZAR
+ function mostrarFormularioActualizar() {
+     $("#formularios").html(`
+         <h4>Actualizar Producto</h4>
+         <input type="number" id="updId" placeholder="ID del producto"><br>
+         <input type="text" id="updNombre" placeholder="Nuevo nombre"><br>
+         <input type="number" id="updPrecio" placeholder="Nuevo precio"><br>
+         <input type="number" id="updExistencia" placeholder="Nueva existencia"><br>
+         <button class="btn-green" onclick="actualizarProducto()">Actualizar</button>
+     `);
+ }
+
+ // ACTUALIZAR PRODUCTO
+ function actualizarProducto() {
+     const id = $("#updId").val();
+     const dto = {
+         nombre_articulo: $("#updNombre").val(),
+         precio: $("#updPrecio").val(),
+         existencia: $("#updExistencia").val()
+     };
+     $.ajax({
+         url: BASE_URL + "/" + id,
+         method: "PUT",
+         contentType: "application/json",
+         data: JSON.stringify(dto),
+         success: data => {
+             Swal.fire("Éxito", "Producto actualizado correctamente", "success");
+             mostrarTabla([data]);
+         },
+         error: () => Swal.fire("Error", "No se pudo actualizar", "error")
+     });
+ }
+
+ // FORMULARIO ELIMINAR
+ function mostrarFormularioEliminar() {
+     $("#formularios").html(`
+         <h4>Eliminar Producto</h4>
+         <input type="number" id="delId" placeholder="ID del producto"><br>
+         <button class="btn-gray" onclick="eliminarProducto()">Eliminar</button>
+     `);
+ }
+
+ // ELIMINAR PRODUCTO
+ function eliminarProducto() {
+     const id = $("#delId").val();
+     $.ajax({
+         url: BASE_URL + "/" + id,
+         method: "DELETE",
+         success: msg => Swal.fire("Éxito", msg, "success"),
+         error: () => Swal.fire("Error", "No se pudo eliminar el producto", "error")
+     });
+ }
+
+ // FORMULARIO INSERTAR
+ function mostrarFormularioInsertar() {
+     $("#formularios").html(`
+         <h4>Insertar Nuevo Producto</h4>
+         <input type="text" id="insNombre" placeholder="Nombre del producto"><br>
+         <input type="number" id="insPrecio" placeholder="Precio"><br>
+         <input type="number" id="insExistencia" placeholder="Existencia"><br>
+         <button class="btn-orange" onclick="insertarProducto()">Guardar</button>
+     `);
+ }
+
+ // INSERTAR PRODUCTO
+ function insertarProducto() {
+     const dto = {
+         nombre_articulo: $("#insNombre").val(),
+         precio: $("#insPrecio").val(),
+         existencia: $("#insExistencia").val()
+     };
+     $.ajax({
+         url: BASE_URL,
+         method: "POST",
+         contentType: "application/json",
+         data: JSON.stringify(dto),
+         success: data => {
+             Swal.fire("Éxito", "Producto agregado correctamente", "success");
+             mostrarTabla([data]);
+         },
+         error: () => Swal.fire("Error", "No se pudo insertar el producto", "error")
+     });
+ }
+
+ // MOSTRAR TABLA EN HTML
+ function mostrarTabla(data) {
+     let html = `
+         <table border="1" cellpadding="5" cellspacing="0">
+             <tr>
+                 <th>ID</th>
+                 <th>Nombre</th>
+                 <th>Precio</th>
+                 <th>Existencia</th>
+             </tr>
+     `;
+     data.forEach(a => {
+         html += `
+             <tr>
+                 <td>${a.id}</td>
+                 <td>${a.nombre_articulo}</td>
+                 <td>${a.precio}</td>
+                 <td>${a.existencia}</td>
+             </tr>
+         `;
+     });
+     html += "</table>";
+     $("#tablaResultados").html(html);
+ }
+
+</script>
+
+</body>
+</html>
