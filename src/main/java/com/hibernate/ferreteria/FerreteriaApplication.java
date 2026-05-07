@@ -23,7 +23,7 @@ public class FerreteriaApplication implements CommandLineRunner {
 	public void run(String... args) throws Exception {
 		System.out.println("Aplicación iniciada correctamente.");
 
-		List<Articulos> articulos = repositorio.findAll();
-		articulos.stream().forEach(System.out::println);
+		/*List<Articulos> articulos = repositorio.findAll();
+		articulos.stream().forEach(System.out::println);*/
 	}
 }
